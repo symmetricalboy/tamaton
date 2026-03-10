@@ -1,7 +1,5 @@
-import WebApp from '@twa-dev/sdk'
 import { useEffect, useRef } from 'react'
-import { PixelEngine } from './engine/PixelEngine'
-import { drawTitleScreen } from './engine/TitleScreen'
+import { PixelEngine, drawTitleScreen } from './engine'
 import themeUrl from './assets/audio/theme.mp3'
 import './App.css'
 
