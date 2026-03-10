@@ -1,0 +1,20 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           BigInt   @id
+  username     String?
+  firstName    String?
+  lastName     String?
+  tonAddress   String?  // Linked TON wallet address
+  coinsBalance Int      @default(0)
+  starsBalance Int      @default(0) // Telegram Stars
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
