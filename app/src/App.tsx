@@ -1,12 +1,50 @@
 import { useEffect, useRef } from 'react'
-import { PixelEngine, drawTitleScreen } from './engine'
+import { 
+  PixelEngine, 
+  drawTitleScreen, 
+  drawWarningScreen, 
+  drawMainMenu, 
+  drawFontCheckScreen,
+  WARNING_TEXT, 
+  TYPING_SPEED,
+  MAIN_MENU_BUTTONS,
+  drawGameplayScreen,
+  GAMEPLAY_BUTTONS,
+  GRID_WIDTH,
+  GRID_HEIGHT,
+  getGroundY
+} from './engine'
+import type { PetType, PetState } from './engine'
 import themeUrl from './assets/audio/theme.mp3'
 import './App.css'
+
+type ScreenState = 'TITLE' | 'WARNING' | 'MAIN_MENU' | 'FONT_CHECK' | 'GAMEPLAY';
+
+const SCREEN_STATES: Record<string, ScreenState> = {
+  TITLE: 'TITLE',
+  WARNING: 'WARNING',
+  MAIN_MENU: 'MAIN_MENU',
+  FONT_CHECK: 'FONT_CHECK',
+  GAMEPLAY: 'GAMEPLAY'
+};
 
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const hasStartedRef = useRef(false);
+  const screenStateRef = useRef<ScreenState>(SCREEN_STATES.TITLE);
+  const stateStartFrameRef = useRef(0);
+  const currentFrameRef = useRef(0);
+  const selectedPetRef = useRef<PetType>('CIRCLE');
+  const petStateRef = useRef<PetState>({
+    x: GRID_WIDTH / 2 - 8,
+    y: getGroundY(GRID_HEIGHT) - 16,
+    lastHopFrame: 0,
+    isHopping: false,
+    hopTargetX: 0,
+    hopStartX: 0,
+    lookDir: 'CENTER',
+    lookTimer: 100
+  });
 
   useEffect(() => {
     // Initialize audio on component mount
@@ -23,13 +61,28 @@ function App() {
 
     // Setup the render loop
     engine.setRenderLoop((eng, frame) => {
-      if (!hasStartedRef.current) {
-        // 1. Title Screen Mode
-        drawTitleScreen(eng, frame);
-      } else {
-        // 2. Gameplay Mode
-        // We will render the Tamagotchi pet here soon!
-        // For now, let's just leave the screen blank so we know the transition worked.
+      currentFrameRef.current = frame;
+      if (stateStartFrameRef.current === -1) {
+        stateStartFrameRef.current = frame;
+      }
+      const stateFrameCount = frame - stateStartFrameRef.current;
+      
+      switch (screenStateRef.current) {
+        case SCREEN_STATES.TITLE:
+          drawTitleScreen(eng, frame);
+          break;
+        case SCREEN_STATES.WARNING:
+          drawWarningScreen(eng, frame, stateFrameCount);
+          break;
+        case SCREEN_STATES.MAIN_MENU:
+          drawMainMenu(eng);
+          break;
+        case SCREEN_STATES.FONT_CHECK:
+          drawFontCheckScreen(eng);
+          break;
+        case SCREEN_STATES.GAMEPLAY:
+          drawGameplayScreen(eng, frame, selectedPetRef.current, petStateRef.current);
+          break;
       }
     });
 
@@ -41,23 +94,114 @@ function App() {
     };
   }, []);
 
-  const handleInteraction = () => {
+  const handleInteraction = (e: React.MouseEvent | React.PointerEvent) => {
+    // Position detection on logical grid
+    if (!canvasRef.current) return;
+    const rect = canvasRef.current.getBoundingClientRect();
+    const scaleX = 135 / rect.width;
+    const scaleY = 240 / rect.height;
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
+
     // Browsers block autoplaying audio. 
-    // We must wait for the first user interaction (a tap or click) to explicitly call .play()
-    if (!hasStartedRef.current) {
-      hasStartedRef.current = true;
+    if (audioRef.current && audioRef.current.paused) {
+      audioRef.current.play().catch((err) => {
+        console.warn("Audio playback failed:", err);
+      });
+    }
+
+    const currentState = screenStateRef.current;
+    
+    if (currentState === SCREEN_STATES.TITLE) {
+      screenStateRef.current = SCREEN_STATES.WARNING;
+      stateStartFrameRef.current = -1;
+    } else if (currentState === SCREEN_STATES.WARNING) {
+      const stateFrameCount = currentFrameRef.current - stateStartFrameRef.current;
+      const isDone = (stateFrameCount * TYPING_SPEED) >= WARNING_TEXT.length;
       
-      if (audioRef.current) {
-        audioRef.current.play().catch((err) => {
-          console.warn("Audio playback failed:", err);
-        });
+      if (isDone) {
+        screenStateRef.current = SCREEN_STATES.MAIN_MENU;
+        stateStartFrameRef.current = -1;
+      } else {
+        stateStartFrameRef.current = currentFrameRef.current - Math.ceil(WARNING_TEXT.length / TYPING_SPEED);
+      }
+    } else if (currentState === SCREEN_STATES.MAIN_MENU) {
+      // Check for button clicks
+      const btn = MAIN_MENU_BUTTONS.CHECK_FONT;
+      if (x >= btn.x && x <= btn.x + btn.w && y >= btn.y && y <= btn.y + btn.h) {
+        screenStateRef.current = SCREEN_STATES.FONT_CHECK;
+        stateStartFrameRef.current = -1;
+      }
+
+      // Pet Selection
+      const p1 = MAIN_MENU_BUTTONS.PET_1;
+      if (x >= p1.x && x <= p1.x + p1.w && y >= p1.y && y <= p1.y + p1.h) {
+        selectedPetRef.current = 'CIRCLE';
+        screenStateRef.current = SCREEN_STATES.GAMEPLAY;
+        stateStartFrameRef.current = -1;
+        // Reset state
+        petStateRef.current = { 
+            x: GRID_WIDTH / 2 - 8, 
+            y: getGroundY(GRID_HEIGHT) - 16, 
+            lastHopFrame: currentFrameRef.current, 
+            isHopping: false, 
+            hopTargetX: 0, 
+            hopStartX: 0,
+            lookDir: 'CENTER',
+            lookTimer: 100
+        };
+      }
+      const p2 = MAIN_MENU_BUTTONS.PET_2;
+      if (x >= p2.x && x <= p2.x + p2.w && y >= p2.y && y <= p2.y + p2.h) {
+        selectedPetRef.current = 'SQUARE';
+        screenStateRef.current = SCREEN_STATES.GAMEPLAY;
+        stateStartFrameRef.current = -1;
+        // Reset state
+        petStateRef.current = { 
+            x: GRID_WIDTH / 2 - 8, 
+            y: getGroundY(GRID_HEIGHT) - 16, 
+            lastHopFrame: currentFrameRef.current, 
+            isHopping: false, 
+            hopTargetX: 0, 
+            hopStartX: 0,
+            lookDir: 'CENTER',
+            lookTimer: 100
+        };
+      }
+      const p3 = MAIN_MENU_BUTTONS.PET_3;
+      if (x >= p3.x && x <= p3.x + p3.w && y >= p3.y && y <= p3.y + p3.h) {
+        selectedPetRef.current = 'TRIANGLE';
+        screenStateRef.current = SCREEN_STATES.GAMEPLAY;
+        stateStartFrameRef.current = -1;
+        // Reset state
+        petStateRef.current = { 
+            x: GRID_WIDTH / 2 - 8, 
+            y: getGroundY(GRID_HEIGHT) - 16, 
+            lastHopFrame: currentFrameRef.current, 
+            isHopping: false, 
+            hopTargetX: 0, 
+            hopStartX: 0,
+            lookDir: 'CENTER',
+            lookTimer: 100
+        };
+      }
+    } else if (currentState === SCREEN_STATES.FONT_CHECK) {
+      // More generous hit area for the back button (top left corner)
+      if (x >= 0 && x <= 50 && y >= 0 && y <= 25) {
+        screenStateRef.current = SCREEN_STATES.MAIN_MENU;
+        stateStartFrameRef.current = -1;
+      }
+    } else if (currentState === SCREEN_STATES.GAMEPLAY) {
+      const back = GAMEPLAY_BUTTONS.BACK;
+      if (x >= back.x && x <= back.x + back.w && y >= back.y && y <= back.y + back.h) {
+        screenStateRef.current = SCREEN_STATES.MAIN_MENU;
+        stateStartFrameRef.current = -1;
       }
     }
   };
 
   return (
-    // Listen for both clicks and pointer down (touch) events
-    <div className="app-container" onClick={handleInteraction} onPointerDown={handleInteraction}>
+    <div className="app-container" onPointerDown={handleInteraction}>
       <canvas ref={canvasRef} className="retro-canvas" />
     </div>
   )

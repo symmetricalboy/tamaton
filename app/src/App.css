@@ -29,20 +29,18 @@ body, html {
   Using object-fit/max-height/max-width ensures it fits on any phone display perfectly.
 */
 .retro-canvas {
-  width: 100%;
-  height: 100%;
-  max-width: 1080px;
-  max-height: 1920px;
-  object-fit: contain;
+  display: block;
+  /* Maintain 9:16 aspect ratio on the element itself */
   aspect-ratio: 9 / 16;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
   
-  /* Critical for crisp "pixels" when perfectly scaled to an integer multiple,
-     though CSS pixelation on fractional scaling varies by browser */
+  /* Critical for crisp "pixels" */
   image-rendering: pixelated; 
   image-rendering: crisp-edges;
   
-  /* Slight retro styling border simulating a handheld console screen edge */
-  border: 4px solid #333;
-  border-radius: 8px;
-  box-sizing: border-box;
+  background-color: #8ba183; /* Match COLOR_OFF */
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
 }

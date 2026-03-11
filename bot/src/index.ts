@@ -8,7 +8,10 @@ if (!token) {
   throw new Error('BOT_TOKEN must be provided!');
 }
 
-const webAppUrl = process.env.WEBAPP_URL || 'https://google.com'; // Placeholder, should be the Railway frontend URL
+let webAppUrl = process.env.WEBAPP_URL || 'https://google.com';
+if (webAppUrl && !webAppUrl.startsWith('http')) {
+  webAppUrl = `https://${webAppUrl}`;
+}
 const port = process.env.PORT || 3000;
 
 // Initialize Bot

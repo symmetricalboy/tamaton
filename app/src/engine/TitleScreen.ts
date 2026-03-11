@@ -1,6 +1,6 @@
 import { PixelEngine, GRID_WIDTH, GRID_HEIGHT } from './PixelEngine';
 import { drawString } from './Font';
-import { drawSprite, logoSprite, getSpriteWidth } from './SpriteDrawer';
+import { drawSprite, spriteMy, spriteTon, spritePet, getSpriteWidth, getSpriteHeight } from './SpriteDrawer';
 
 // State for Title Screen sparkles
 interface Sparkle {
@@ -49,26 +49,37 @@ function processAndDrawSparkles(engine: PixelEngine) {
 }
 
 export function drawTitleScreen(engine: PixelEngine, frameCount: number) {
-  // 1. Draw Massive "MY TON PET" Sprite
-  const spriteWidth = getSpriteWidth(logoSprite);
-  const startX = Math.floor((GRID_WIDTH / 2) - (spriteWidth / 2));
-  const startY = Math.floor(GRID_HEIGHT / 4);  // Move up slightly higher 
+  // Center alignments
+  const midX = GRID_WIDTH / 2;
+  const startY = 50;
+  const spacing = 15;
 
-  // Bobbing animation for the big logo
-  const yOffset = Math.floor(Math.sin(frameCount / 25) * 3);
+  // Bobbing animation
+  const bob = Math.floor(Math.sin(frameCount / 25) * 3);
 
-  drawSprite(engine, logoSprite, startX, startY + yOffset);
+  // 1. Draw "MY"
+  const myX = Math.floor(midX - getSpriteWidth(spriteMy) / 2);
+  const myY = startY + bob;
+  drawSprite(engine, spriteMy, myX, myY);
 
-  // 2. Add some "Press Start" text using the generic 3x5 font! 
-  // It will blink every 60 frames.
+  // 2. Draw "TON"
+  const tonX = Math.floor(midX - getSpriteWidth(spriteTon) / 2);
+  const tonY = myY + getSpriteHeight(spriteMy) + spacing;
+  drawSprite(engine, spriteTon, tonX, tonY);
+
+  // 3. Draw "PET"
+  const petX = Math.floor(midX - getSpriteWidth(spritePet) / 2);
+  const petY = tonY + getSpriteHeight(spriteTon) + spacing;
+  drawSprite(engine, spritePet, petX, petY);
+
+  // 4. Add some "Press Start" text using the generic 3x5 font! 
   if (frameCount % 60 < 30) {
     const subText = "> TAP TO START <";
-    // Each char is 3 pixels + 1 space = 4. 
-    const subTextWidth = subText.length * 4;
+    const subTextWidth = subText.length * 6;
     const subStartX = Math.floor((GRID_WIDTH / 2) - (subTextWidth / 2));
-    drawString(engine, subText, subStartX, Math.floor(GRID_HEIGHT * 0.7));
+    drawString(engine, subText, subStartX, Math.floor(GRID_HEIGHT * 0.90));
   }
 
-  // 3. Process and draw sparkles
+  // 5. Process and draw sparkles
   processAndDrawSparkles(engine);
 }
