@@ -1,5 +1,7 @@
 import { PixelEngine } from './PixelEngine';
-import { drawString } from './Font';
+import { drawString as originalDrawString } from './Font';
+
+export const drawString = originalDrawString;
 
 /**
  * Standardized button drawing utility.

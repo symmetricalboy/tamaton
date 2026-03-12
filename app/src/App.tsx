@@ -36,9 +36,9 @@ function App() {
   const currentFrameRef = useRef(0);
   const selectedPetRef = useRef<PetType>('CIRCLE');
   const petStateRef = useRef<PetState>({
-    x: GRID_WIDTH / 2 - 8,
-    y: getGroundY(GRID_HEIGHT) - 16,
-    lastHopFrame: 0,
+    x: GRID_WIDTH / 2 - 16,
+    y: getGroundY(GRID_HEIGHT) - 24,
+    lastHopFrame: -10000,
     isHopping: false,
     hopTargetX: 0,
     hopStartX: 0,
@@ -141,9 +141,9 @@ function App() {
         stateStartFrameRef.current = -1;
         // Reset state
         petStateRef.current = { 
-            x: GRID_WIDTH / 2 - 8, 
-            y: getGroundY(GRID_HEIGHT) - 16, 
-            lastHopFrame: currentFrameRef.current, 
+            x: GRID_WIDTH / 2 - 16, 
+            y: getGroundY(GRID_HEIGHT) - 24, 
+            lastHopFrame: currentFrameRef.current - 10000, 
             isHopping: false, 
             hopTargetX: 0, 
             hopStartX: 0,
@@ -158,9 +158,9 @@ function App() {
         stateStartFrameRef.current = -1;
         // Reset state
         petStateRef.current = { 
-            x: GRID_WIDTH / 2 - 8, 
-            y: getGroundY(GRID_HEIGHT) - 16, 
-            lastHopFrame: currentFrameRef.current, 
+            x: GRID_WIDTH / 2 - 16, 
+            y: getGroundY(GRID_HEIGHT) - 24, 
+            lastHopFrame: currentFrameRef.current - 10000, 
             isHopping: false, 
             hopTargetX: 0, 
             hopStartX: 0,
@@ -176,8 +176,8 @@ function App() {
         // Reset state
         petStateRef.current = { 
             x: GRID_WIDTH / 2 - 8, 
-            y: getGroundY(GRID_HEIGHT) - 16, 
-            lastHopFrame: currentFrameRef.current, 
+            y: getGroundY(GRID_HEIGHT) - 15, 
+            lastHopFrame: currentFrameRef.current - 10000, 
             isHopping: false, 
             hopTargetX: 0, 
             hopStartX: 0,
@@ -193,9 +193,35 @@ function App() {
       }
     } else if (currentState === SCREEN_STATES.GAMEPLAY) {
       const back = GAMEPLAY_BUTTONS.BACK;
+      const info = GAMEPLAY_BUTTONS.INFO;
+      
       if (x >= back.x && x <= back.x + back.w && y >= back.y && y <= back.y + back.h) {
         screenStateRef.current = SCREEN_STATES.MAIN_MENU;
         stateStartFrameRef.current = -1;
+      } else if (x >= info.x && x <= info.x + info.w && y >= info.y && y <= info.y + info.h) {
+        console.log("Action Button Clicked: INFO (Top Right)");
+      }   // Check the 8 Action Buttons
+      const screenY = 40;
+      const screenH = 110;
+      const btnStartY = screenY + screenH + 6;
+      const btnW = 45;
+      const btnH = 15;
+      const gapX = 10;
+      const gapY = 5;
+      const totalW = btnW * 2 + gapX;
+      const btnStartX = Math.floor((GRID_WIDTH - totalW) / 2);
+
+      const btnNames = ["PET", "FEED", "WALK", "PLAY", "TREAT", "SCOLD", "TEACH", "TRAIN"];
+      for(let r=0; r<4; r++){
+          for(let c=0; c<2; c++){
+              const bx = btnStartX + c * (btnW + gapX);
+              const by = btnStartY + r * (btnH + gapY);
+              if (x >= bx && x <= bx + btnW && y >= by && y <= by + btnH) {
+                  const clickedBtn = btnNames[r * 2 + c];
+                  console.log(`Action Button Clicked: ${clickedBtn}`);
+                  // Future: trigger specific action based on `clickedBtn`
+              }
+          }
       }
     }
   };

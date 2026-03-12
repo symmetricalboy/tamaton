@@ -65,7 +65,7 @@ export function drawTitleScreen(engine: PixelEngine, frameCount: number) {
     const subText = "> TAP TO START <";
     const subTextWidth = subText.length * 6;
     const subStartX = Math.floor((GRID_WIDTH / 2) - (subTextWidth / 2));
-    drawString(engine, subText, subStartX, Math.floor(GRID_HEIGHT * 0.90));
+    drawString(engine, subText, subStartX, Math.floor(GRID_HEIGHT * 0.82));
   }
 
   // 5. Process and draw sparkles
