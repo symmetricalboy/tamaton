@@ -5,6 +5,7 @@ export * from './WarningScreen';
 export * from './MainMenu';
 export * from './FontCheckScreen';
 export * from './GameplayScreen';
+export * from './SettingsScreen';
 export * from './UI';
 export { spriteTamaton } from './SpriteDrawer';
 export * from './SpriteDrawer'; 

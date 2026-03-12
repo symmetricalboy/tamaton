@@ -29,14 +29,14 @@ export interface PetState {
 
 export const GAMEPLAY_BUTTONS = {
     BACK: {
-        x: 5,
+        x: 10,
         y: 5,
-        w: 45,
+        w: 35,
         h: 14,
-        text: "< BACK"
+        text: "BACK"
     },
     INFO: {
-        x: 95,
+        x: 90,
         y: 5,
         w: 35,
         h: 14,
@@ -86,7 +86,7 @@ export function drawGameplayScreen(engine: PixelEngine, frameCount: number, petT
     const screenH = 110;
     
     // Draw rounded rectangle for the "screen"
-    // Skip corners for a rounder edge
+    // Outer Border (1px)
     for (let i = screenX + 2; i < screenX + screenW - 2; i++) {
         engine.drawPixel(i, screenY);
         engine.drawPixel(i, screenY + screenH - 1);
@@ -95,11 +95,27 @@ export function drawGameplayScreen(engine: PixelEngine, frameCount: number, petT
         engine.drawPixel(screenX, i);
         engine.drawPixel(screenX + screenW - 1, i);
     }
-    // Add inner corner pixels to smooth the curve
-    engine.drawPixel(screenX + 1, screenY + 1); // Top-left
-    engine.drawPixel(screenX + screenW - 2, screenY + 1); // Top-right
-    engine.drawPixel(screenX + 1, screenY + screenH - 2); // Bottom-left
-    engine.drawPixel(screenX + screenW - 2, screenY + screenH - 2); // Bottom-right
+    // Inner Border (1px) to make it THICK
+    for (let i = screenX + 2; i < screenX + screenW - 2; i++) {
+        engine.drawPixel(i, screenY + 1);
+        engine.drawPixel(i, screenY + screenH - 2);
+    }
+    for (let i = screenY + 2; i < screenY + screenH - 2; i++) {
+        engine.drawPixel(screenX + 1, i);
+        engine.drawPixel(screenX + screenW - 2, i);
+    }
+
+    // Add corner pixels to smooth the curve on both layers (outer layer)
+    engine.drawPixel(screenX + 1, screenY + 1); // Top-left outer
+    engine.drawPixel(screenX + screenW - 2, screenY + 1); // Top-right outer
+    engine.drawPixel(screenX + 1, screenY + screenH - 2); // Bottom-left outer
+    engine.drawPixel(screenX + screenW - 2, screenY + screenH - 2); // Bottom-right outer
+    
+    // (inner layer)
+    engine.drawPixel(screenX + 2, screenY + 2); // Top-left inner
+    engine.drawPixel(screenX + screenW - 3, screenY + 2); // Top-right inner
+    engine.drawPixel(screenX + 2, screenY + screenH - 3); // Bottom-left inner
+    engine.drawPixel(screenX + screenW - 3, screenY + screenH - 3); // Bottom-right inner
 
     // 4. Action Buttons (Grid 2x4 below the screen)
     const btnStartY = screenY + screenH + 6;
@@ -125,8 +141,9 @@ export function drawGameplayScreen(engine: PixelEngine, frameCount: number, petT
     // We update the state object directly (it's a ref in App.tsx)
     const hopDuration = 40;
     const hopCooldown = 120;
-    // Ground is inside the "screen" now
-    const groundY = screenY + screenH - 6;
+    // Ground is inside the "screen" now. 
+    // Moving it up slightly more due to the thicker floor line.
+    const groundY = screenY + screenH - 7;
 
     if (!state.isHopping && (frameCount - state.lastHopFrame) > hopCooldown) {
         // Start a new hop
@@ -205,6 +222,9 @@ export function drawGameplayScreen(engine: PixelEngine, frameCount: number, petT
     // Personality Effects
     let squishY = 1.0;
     let squishX = 1.0;
+
+    // Apply clipping mask so pets/dust don't render over or outside the screen box
+    engine.setClipRect(screenX + 1, screenY + 1, screenW - 2, screenH - 2);
 
     if (petType === 'CIRCLE' || petType === 'SQUARE' || petType === 'TRIANGLE') {
         // --- 1. Gaze Logic ---
@@ -473,6 +493,9 @@ export function drawGameplayScreen(engine: PixelEngine, frameCount: number, petT
             engine.drawPixel(mouthX + c + 1, mouthY + mouthH - 2, true);
         }
     }
+
+    // Remove clipping mask after all pet features are drawn
+    engine.clearClipRect();
 }
 
 /**

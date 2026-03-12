@@ -5,11 +5,11 @@ import { drawButton } from './UI';
 
 export const FONT_CHECK_BUTTONS = {
     BACK: {
-        x: 5,
+        x: 10,
         y: 5,
-        w: 45,
+        w: 35,
         h: 14,
-        text: "< BACK"
+        text: "BACK"
     }
 };
 

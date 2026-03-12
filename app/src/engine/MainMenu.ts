@@ -30,6 +30,13 @@ export const MAIN_MENU_BUTTONS = {
         w: 70,
         h: 16,
         text: "PET 3"
+    },
+    SETTINGS: {
+        x: Math.floor(GRID_WIDTH / 2 - 35),
+        y: 195,
+        w: 70,
+        h: 16,
+        text: "SETTINGS"
     }
 };
 
@@ -44,4 +51,5 @@ export function drawMainMenu(engine: PixelEngine) {
     drawButton(engine, MAIN_MENU_BUTTONS.PET_1.x, MAIN_MENU_BUTTONS.PET_1.y, MAIN_MENU_BUTTONS.PET_1.w, MAIN_MENU_BUTTONS.PET_1.h, MAIN_MENU_BUTTONS.PET_1.text);
     drawButton(engine, MAIN_MENU_BUTTONS.PET_2.x, MAIN_MENU_BUTTONS.PET_2.y, MAIN_MENU_BUTTONS.PET_2.w, MAIN_MENU_BUTTONS.PET_2.h, MAIN_MENU_BUTTONS.PET_2.text);
     drawButton(engine, MAIN_MENU_BUTTONS.PET_3.x, MAIN_MENU_BUTTONS.PET_3.y, MAIN_MENU_BUTTONS.PET_3.w, MAIN_MENU_BUTTONS.PET_3.h, MAIN_MENU_BUTTONS.PET_3.text);
+    drawButton(engine, MAIN_MENU_BUTTONS.SETTINGS.x, MAIN_MENU_BUTTONS.SETTINGS.y, MAIN_MENU_BUTTONS.SETTINGS.w, MAIN_MENU_BUTTONS.SETTINGS.h, MAIN_MENU_BUTTONS.SETTINGS.text);
 }

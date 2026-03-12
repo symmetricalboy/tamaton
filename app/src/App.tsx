@@ -12,20 +12,25 @@ import {
   GAMEPLAY_BUTTONS,
   GRID_WIDTH,
   GRID_HEIGHT,
-  getGroundY
+  getGroundY,
+  drawSettingsScreen,
+  SETTINGS_BUTTONS,
+  COLOR_THEME_BUTTONS,
+  THEMES
 } from './engine'
-import type { PetType, PetState } from './engine'
+import type { PetType, PetState, SettingsScreenState } from './engine'
 import themeUrl from './assets/audio/theme.mp3'
 import './App.css'
 
-type ScreenState = 'TITLE' | 'WARNING' | 'MAIN_MENU' | 'FONT_CHECK' | 'GAMEPLAY';
+type ScreenState = 'TITLE' | 'WARNING' | 'MAIN_MENU' | 'FONT_CHECK' | 'GAMEPLAY' | 'SETTINGS';
 
 const SCREEN_STATES: Record<string, ScreenState> = {
   TITLE: 'TITLE',
   WARNING: 'WARNING',
   MAIN_MENU: 'MAIN_MENU',
   FONT_CHECK: 'FONT_CHECK',
-  GAMEPLAY: 'GAMEPLAY'
+  GAMEPLAY: 'GAMEPLAY',
+  SETTINGS: 'SETTINGS'
 };
 
 function App() {
@@ -46,6 +51,14 @@ function App() {
     lookTimer: 100
   });
 
+  const volumeRef = useRef(50);
+  const isMutedRef = useRef(false);
+  const themeRef = useRef(THEMES.GREEN);
+  const settingsSubStateRef = useRef<SettingsScreenState>('MAIN');
+
+  // Track dragging for volume slider
+  const isDraggingVolumeRef = useRef(false);
+
   useEffect(() => {
     // Initialize audio on component mount
     audioRef.current = new Audio(themeUrl);
@@ -61,6 +74,7 @@ function App() {
 
     // Setup the render loop
     engine.setRenderLoop((eng, frame) => {
+      eng.setTheme(themeRef.current);
       currentFrameRef.current = frame;
       if (stateStartFrameRef.current === -1) {
         stateStartFrameRef.current = frame;
@@ -83,6 +97,9 @@ function App() {
         case SCREEN_STATES.GAMEPLAY:
           drawGameplayScreen(eng, frame, selectedPetRef.current, petStateRef.current);
           break;
+        case SCREEN_STATES.SETTINGS:
+          drawSettingsScreen(eng, settingsSubStateRef.current, volumeRef.current, isMutedRef.current);
+          break;
       }
     });
 
@@ -104,7 +121,7 @@ function App() {
     const y = (e.clientY - rect.top) * scaleY;
 
     // Browsers block autoplaying audio. 
-    if (audioRef.current && audioRef.current.paused) {
+    if (audioRef.current && audioRef.current.paused && !isMutedRef.current) {
       audioRef.current.play().catch((err) => {
         console.warn("Audio playback failed:", err);
       });
@@ -185,6 +202,12 @@ function App() {
             lookTimer: 100
         };
       }
+      const settingsBtn = MAIN_MENU_BUTTONS.SETTINGS;
+      if (x >= settingsBtn.x && x <= settingsBtn.x + settingsBtn.w && y >= settingsBtn.y && y <= settingsBtn.y + settingsBtn.h) {
+        screenStateRef.current = SCREEN_STATES.SETTINGS;
+        settingsSubStateRef.current = 'MAIN';
+        stateStartFrameRef.current = -1;
+      }
     } else if (currentState === SCREEN_STATES.FONT_CHECK) {
       // More generous hit area for the back button (top left corner)
       if (x >= 0 && x <= 50 && y >= 0 && y <= 25) {
@@ -223,11 +246,100 @@ function App() {
               }
           }
       }
+    } else if (currentState === SCREEN_STATES.SETTINGS) {
+      const back = SETTINGS_BUTTONS.BACK;
+      if (x >= back.x && x <= back.x + back.w && y >= back.y && y <= back.y + back.h) {
+        if (settingsSubStateRef.current === 'COLOR_THEME') {
+            settingsSubStateRef.current = 'MAIN';
+        } else {
+            screenStateRef.current = SCREEN_STATES.MAIN_MENU;
+            stateStartFrameRef.current = -1;
+        }
+        return;
+      }
+
+      if (settingsSubStateRef.current === 'MAIN') {
+        const scBtn = SETTINGS_BUTTONS.SCREEN_COLOR;
+        if (x >= scBtn.x && x <= scBtn.x + scBtn.w && y >= scBtn.y && y <= scBtn.y + scBtn.h) {
+            settingsSubStateRef.current = 'COLOR_THEME';
+            return;
+        }
+
+        // Speaker Mute Toggle Hitbox (matches mute box in SettingsScreen)
+        const muteBoxX = 13;
+        const muteBoxY = 46;
+        const muteBoxW = 20;
+        const muteBoxH = 15;
+        if (x >= muteBoxX && x <= muteBoxX + muteBoxW && y >= muteBoxY && y <= muteBoxY + muteBoxH) {
+            isMutedRef.current = !isMutedRef.current;
+            if (audioRef.current) {
+                if (isMutedRef.current) {
+                    audioRef.current.pause();
+                } else {
+                    audioRef.current.play().catch(e => console.warn(e));
+                }
+            }
+            return;
+        }
+
+        // Volume Slider Hitbox (slightly padded for easier clicking)
+        const sliderX = 40;
+        const sliderY = 53;
+        const sliderW = 60;
+        if (x >= sliderX - 5 && x <= sliderX + sliderW + 5 && y >= sliderY - 5 && y <= sliderY + 5) {
+            isDraggingVolumeRef.current = true;
+            // update immediately
+            let newVol = ((x - sliderX) / sliderW) * 100;
+            newVol = Math.max(0, Math.min(100, newVol));
+            volumeRef.current = newVol;
+            if (audioRef.current) audioRef.current.volume = newVol / 100;
+            
+            // if we are muted, interacting with slider automatically unmutes
+            if (isMutedRef.current) {
+                isMutedRef.current = false;
+                if (audioRef.current) audioRef.current.play().catch(e => console.warn(e));
+            }
+        }
+
+      } else if (settingsSubStateRef.current === 'COLOR_THEME') {
+          for (const btn of COLOR_THEME_BUTTONS) {
+              if (x >= btn.x && x <= btn.x + btn.w && y >= btn.y && y <= btn.y + btn.h) {
+                  // Apply theme
+                  themeRef.current = THEMES[btn.id];
+                  // In a real app we would want this passed to pixel engine. Instead of a hack,
+                  // we could rely on the effect to update it or update a global.
+                  // Wait, how does PixelEngine get the theme? 
+                  // In the render loop, right before clearing, the engine needs it.
+                  // We can update the engine immediately in state? Note engine is scoped.
+                  break;
+              }
+          }
+      }
     }
   };
 
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isDraggingVolumeRef.current || !canvasRef.current) return;
+    
+    const rect = canvasRef.current.getBoundingClientRect();
+    const scaleX = 135 / rect.width;
+    const x = (e.clientX - rect.left) * scaleX;
+
+    const sliderX = 40;
+    const sliderW = 60;
+    
+    let newVol = ((x - sliderX) / sliderW) * 100;
+    newVol = Math.max(0, Math.min(100, newVol));
+    volumeRef.current = newVol;
+    if (audioRef.current) audioRef.current.volume = newVol / 100;
+  };
+
+  const handlePointerUp = () => {
+    isDraggingVolumeRef.current = false;
+  };
+
   return (
-    <div className="app-container" onPointerDown={handleInteraction}>
+    <div className="app-container" onPointerDown={handleInteraction} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerLeave={handlePointerUp}>
       <canvas ref={canvasRef} className="retro-canvas" />
     </div>
   )
