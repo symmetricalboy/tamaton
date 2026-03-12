@@ -1,7 +1,6 @@
-# TON Pet Game - Telegram Mini App
+# Tamaton - Telegram Mini App
 
-This repository contains the source code for the TON Pet Game, a Telegram Mini App featuring TON and Telegram Stars integration. 
-
+This repository contains the source code for Tamaton, a Telegram Mini App featuring TON and Telegram Stars integration. 
 ## Project Structure
 - `/app` - The React + Vite frontend for the Telegram Mini App.
 - `/bot` - The Node.js + Telegraf bot backend.
@@ -18,7 +17,7 @@ This repository contains the source code for the TON Pet Game, a Telegram Mini A
 Ensure you have a local PostgreSQL instance running.
 Create a `.env` file in the `/bot` directory:
 ```env
-DATABASE_URL="postgresql://user:password@localhost:5432/tonpet"
+DATABASE_URL="postgresql://user:password@localhost:5432/tamaton"
 BOT_TOKEN="your_telegram_bot_token"
 WEBAPP_URL="http://localhost:5173"
 ```
@@ -70,4 +69,4 @@ This repository is configured as a monorepo. You will need to create three resou
    - Ensure the build command is `npm install && npm run build`.
    - Railway will automatically detect it as a static Vite site.
 
-Enjoy building your TON Pet Mini App!
+Enjoy building your Tamaton Mini App!

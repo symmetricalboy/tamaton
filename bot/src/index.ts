@@ -8,7 +8,7 @@ if (!token) {
   throw new Error('BOT_TOKEN must be provided!');
 }
 
-let webAppUrl = process.env.WEBAPP_URL || 'https://google.com';
+let webAppUrl = process.env.WEBAPP_URL || 'https://app-production-0ef5.up.railway.app';
 if (webAppUrl && !webAppUrl.startsWith('http')) {
   webAppUrl = `https://${webAppUrl}`;
 }
@@ -19,7 +19,7 @@ const bot = new Telegraf(token);
 
 bot.command('start', (ctx) => {
   return ctx.reply(
-    'Welcome to the TON Pet Game! 🐾\nTap the button below to start collecting coins, earning Stars, and upgrading your pet.',
+    'Welcome to TamaTON! 🐾\nTap the button below to begin!',
     Markup.inlineKeyboard([
       Markup.button.webApp('Play Now 🎮', webAppUrl)
     ])
