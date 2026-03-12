@@ -5,7 +5,8 @@ import {
     spriteSquarePet, 
     spriteTrianglePet 
 } from './SpriteDrawer';
-import { drawButton, drawString } from './UI';
+import { drawButton } from './UI';
+import { drawString } from './Font';
 
 export type PetType = 'CIRCLE' | 'SQUARE' | 'TRIANGLE';
 
