@@ -6,5 +6,5 @@ export * from './MainMenu';
 export * from './FontCheckScreen';
 export * from './GameplayScreen';
 export * from './UI';
-export { spriteMy, spriteTon, spritePet } from './SpriteDrawer';
+export { spriteTamaton } from './SpriteDrawer';
 export * from './SpriteDrawer'; 

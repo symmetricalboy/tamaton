@@ -1,6 +1,6 @@
 import { PixelEngine, GRID_WIDTH, GRID_HEIGHT } from './PixelEngine';
 import { drawString } from './Font';
-import { drawSprite, spriteMy, spriteTon, spritePet, getSpriteWidth, getSpriteHeight } from './SpriteDrawer';
+import { drawSprite, spriteTamaton, getSpriteWidth } from './SpriteDrawer';
 
 // State for Title Screen sparkles
 interface Sparkle {
@@ -51,26 +51,14 @@ function processAndDrawSparkles(engine: PixelEngine) {
 export function drawTitleScreen(engine: PixelEngine, frameCount: number) {
   // Center alignments
   const midX = GRID_WIDTH / 2;
-  const startY = 50;
-  const spacing = 15;
 
   // Bobbing animation
   const bob = Math.floor(Math.sin(frameCount / 25) * 3);
 
-  // 1. Draw "MY"
-  const myX = Math.floor(midX - getSpriteWidth(spriteMy) / 2);
-  const myY = startY + bob;
-  drawSprite(engine, spriteMy, myX, myY);
-
-  // 2. Draw "TON"
-  const tonX = Math.floor(midX - getSpriteWidth(spriteTon) / 2);
-  const tonY = myY + getSpriteHeight(spriteMy) + spacing;
-  drawSprite(engine, spriteTon, tonX, tonY);
-
-  // 3. Draw "PET"
-  const petX = Math.floor(midX - getSpriteWidth(spritePet) / 2);
-  const petY = tonY + getSpriteHeight(spriteTon) + spacing;
-  drawSprite(engine, spritePet, petX, petY);
+  // 1. Draw "TAMATON"
+  const tamatonX = Math.floor(midX - getSpriteWidth(spriteTamaton) / 2);
+  const tamatonY = 90 + bob;
+  drawSprite(engine, spriteTamaton, tamatonX, tamatonY);
 
   // 4. Add some "Press Start" text using the generic 3x5 font! 
   if (frameCount % 60 < 30) {
